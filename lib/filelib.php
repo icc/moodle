@@ -3821,6 +3821,17 @@ class curl {
                     curl_close($curl);
                     return $urlisblocked;
                 }
+                
+                // If the response body is written to a stream resource
+                if (!empty($options['CURLOPT_FILE'])) {
+                    // and the stream resource is seekable
+                    $streammetadata = stream_get_meta_data($options['CURLOPT_FILE']);
+                    if ($streammetadata['seekable']) {
+                        // we reset the stream pointer to avoid appending multiple
+                        // response bodies to the same resource
+                        rewind($options['CURLOPT_FILE']);
+                    }
+                }
 
                 curl_setopt($curl, CURLOPT_URL, $redirecturl);
                 $ret = curl_exec($curl);
