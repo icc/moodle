@@ -3824,10 +3824,11 @@ class curl {
 
                 // If the response body is written to a seekable stream resource, reset the stream pointer to avoid
                 // appending multiple response bodies to the same resource.
-                if (!empty($options['CURLOPT_FILE'])) {
-                    $streammetadata = stream_get_meta_data($options['CURLOPT_FILE']);
+                if (!empty($this->options['CURLOPT_FILE'])) {
+                    $streammetadata = stream_get_meta_data($this->options['CURLOPT_FILE']);
                     if ($streammetadata['seekable']) {
-                        rewind($options['CURLOPT_FILE']);
+                        ftruncate($this->options['CURLOPT_FILE'], 0);
+                        rewind($this->options['CURLOPT_FILE']);
                     }
                 }
 
