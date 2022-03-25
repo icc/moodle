@@ -195,6 +195,41 @@ if (($launchcontainer == LTI_LAUNCH_CONTAINER_WINDOW) &&
                 resize();
 
                 Y.on("windowresize", resize);
+
+                var isOkSent = false;
+                var externalResize = function (event) {
+                    try {
+                        if (frame.getDOMNode().contentWindow !== event.source) {
+                            return; // Not the LTI frame
+                        }
+
+                        var message = JSON.parse(event.data);
+                        if (message.subject === "lti.frameResize") {
+                            if (!isOkSent) {
+                                isOkSent = true; // Run only initially / on first event
+
+                                // Let the iframe know that we are resizing it so that any internal scrollbars can be disabled and infinite resize loops prevented.
+                                event.source.postMessage(JSON.stringify({
+                                    subject: "lti.frameResizeOk"
+                                }), "*");
+
+                                // Prevent double resizing
+                                Y.detach("windowresize", resize);
+                            }
+
+                            var newHeight = parseInt(message.height);
+                            if (newHeight <= 0) {
+                                newHeight = 1; // Ensure visibility
+                            }
+                            frame.setStyle("height", newHeight + "px");
+                        }
+                    }
+                    catch (err) {
+                        // Intentionally left empty
+                    }
+                };
+
+                window.addEventListener("message", externalResize, false);
             });
         //]]
         </script>
